@@ -57,5 +57,4 @@ Some blocks require multiple hits to destroy, while special bomb blocks explode 
     - The block is damaged or destroyed
 - If a bomb block is hit:
     - All nearby blocks are removed
-
-
+    
