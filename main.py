@@ -1,6 +1,7 @@
 from turtle import *
 import time
 
+start = time.time()
 ### CLASS and FUNCTION DEFINITIONS ###
 
 class Player(Turtle):
@@ -17,7 +18,6 @@ class Player(Turtle):
         self.hue = color
         self.alive = True
         self.st()
-        self.score = 0
         self.bullets = []
         screen.onkeypress(self.turn_left, left_key)
         screen.onkeypress(self.turn_right, right_key)
@@ -49,12 +49,15 @@ class Bullet(Turtle):
     def move(self):
         self.forward(7)
         if self.xcor() > 100 or self.xcor() < -100:
-            self.setheading(-(self.heading()))
-        elif self.heading() == 0:
-            self.heading(180)
-        if self.ycor() > 230 or self.ycor() < -230:
-            self.ht()
+            self.setheading(180 - self.heading())
+        elif self.ycor() < -230:
+            self.die()
+            
+    def die(self):
+        self.ht()
+        if self in self.player.bullets:
             self.player.bullets.remove(self)
+            
 
 def playing_area():
     pen = Turtle()
@@ -79,43 +82,84 @@ class Block(Turtle):
         self.goto(x,y)
         self.color(color)
         self.st()
+        self.health = 0
+        self.colors = ["red", "yellow"]
+    def damage(self, players, scores):
+        self.health -= 1
+        if self.health == -3:
+            self.ht()
+            blocks.remove(self)
+            scores.score += 1
+
+        else:
+            self.color(self.colors[self.health])
+
+class Score(Turtle):
+    def __init__(self, x, y):
+        super().__init__()
+        self.ht()
+        self.color("white")
+        self.pu()
+        self.goto(x, y)
+        self.score = 0
+        self.write(f"Score: {self.score}", font = ("arial",15, "normal"))
+
+    def update_score(self):
+        self.clear()
+        self.write(f"Score: {self.score}", font = ("arial",15, "normal"))
+
+
+        
 
 def update():
+    global start
+    if time.time() - start > 3:
+        start = time.time()
+        #move all blocks down create new row
+        screen.tracer(0)
+        for block in blocks:
+            block.goto(block.xcor(), block.ycor() - 20)
+            for x in range(90, -91, -20):
+                if len(blocks) % 3 == 0:
+                    blocks.append(Block(x,230, "lightgray"))
+                elif len(blocks) % 3 == 1:
+                    blocks.append(Block(x,230, "gray"))
+                else:
+                    blocks.append(Block(x, 230, "darkgray"))
+        screen.tracer(1)
     if p1.alive and p2.alive:
         for bullet in p1.bullets:
             bullet.move()
             for block in blocks:
                 if bullet.distance(block) < 20:
-                    block.ht()
-                    blocks.remove(block)
-                    bullet.ht()
-                    p1.bullets.remove(bullet)
-                    p1.score += 1
-                    print(p1.score)
+                    bullet.die()
+                    block.damage(p1, score1)
+                    score1.update_score()
         for bullet in p2.bullets:
             bullet.move()
             for block in blocks:
                 if bullet.distance(block) < 20:
-                    block.ht()
-                    blocks.remove(block)
-                    bullet.ht()
-                    p2.bullets.remove(bullet)
-                    p2.score += 1
-                    print(p2.score)
+                    bullet.die()
+                    block.damage(p2, score2)
+                    score2.update_score()
+
     screen.ontimer(update, 30)
 
 
 ### PROGRAM ###
+
 screen = Screen()
 screen.bgcolor("black")
 screen.setup(400,800)
 playing_area()
 screen.listen()
 blocks = []
-p1 = Player(40,-200, "red", screen, "d", "a", "s")
-p2 = Player(-40,-200, "blue", screen, "Right", "Left", "Down")
+p1 = Player(40,-200, "red", screen, "Right", "Left", "Down")
+p2 = Player(-40,-200, "blue", screen, "d", "a", "s")
+score1 = Score(25, 250)
+score2 = Score(-90, 250)
 
-
+screen.tracer(0)
 for y in range(230, 130, -20):
     for x in range(90, -91, -20):
         if len(blocks) % 3 == 0:
@@ -124,7 +168,7 @@ for y in range(230, 130, -20):
             blocks.append(Block(x,y, "gray"))
         else:
             blocks.append(Block(x, y, "darkgray"))
-    
+screen.tracer(1)
 update()
 
 screen.exitonclick()
