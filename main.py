@@ -109,8 +109,16 @@ class Score(Turtle):
         self.write(f"Score: {self.score}", font = ("arial",15, "normal"))
 
 
-        
+def create_rows(blocks):
+    for x in range(90, -91, -20):
+        if len(blocks) % 3 == 0:
+            blocks.append(Block(x,230, "lightgray"))
+        elif len(blocks) % 3 == 1:
+            blocks.append(Block(x,230, "gray"))
+        else:
+            blocks.append(Block(x, 230, "darkgray"))
 
+def game_over
 def update():
     global start
     if time.time() - start > 3:
@@ -119,13 +127,11 @@ def update():
         screen.tracer(0)
         for block in blocks:
             block.goto(block.xcor(), block.ycor() - 20)
-            for x in range(90, -91, -20):
-                if len(blocks) % 3 == 0:
-                    blocks.append(Block(x,230, "lightgray"))
-                elif len(blocks) % 3 == 1:
-                    blocks.append(Block(x,230, "gray"))
-                else:
-                    blocks.append(Block(x, 230, "darkgray"))
+            if block.ycor() < -200:
+                print("block broken")
+                block.ht()
+                blocks.remove(block)
+        create_rows(blocks)
         screen.tracer(1)
     if p1.alive and p2.alive:
         for bullet in p1.bullets:
